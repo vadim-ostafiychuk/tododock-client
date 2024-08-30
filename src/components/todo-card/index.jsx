@@ -1,16 +1,21 @@
 import { Link } from "react-router-dom";
+import { DateTime } from "luxon";
 
-const TodoCard = () => {
+const TodoCard = ({ todo }) => {
   return (
-    <div className="border-b py-4">
-      <h2>Todo</h2>
+    <div className="border-b py-4 px-2">
+      <h2>{todo.title}</h2>
       <span className="text-[#e80000]">Closed</span>
-      <p className="italic">Description</p>
+      <p className="italic">{todo.description}</p>
 
       <p>
-        <time>20.09.2024</time>
+        <time>
+          {DateTime.fromISO(todo.createdAt)
+            .setLocale("en-US")
+            .toLocaleString(DateTime.DATETIME_FULL)}
+        </time>
       </p>
-      <Link className="text-blue-800 underline" to="/todos/1">
+      <Link className="text-blue-800 underline" to={`/todos/${todo._id}`}>
         Open
       </Link>
     </div>
