@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "react-query";
+import { useQuery, useMutation } from "react-query";
 import axiosInstance from "../../api/axios_instance";
 import AuthProvider from "../../auth/authProvider";
-import { useNavigate } from "react-router-dom";
 
 const fetchMe = async () => {
   return axiosInstance({
@@ -11,30 +10,30 @@ const fetchMe = async () => {
   });
 };
 
-const Account = () => {
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const Account = () => {
   const meResponse = useQuery("me", fetchMe, {
     refetchOnWindowFocus: false,
     retry: false,
     cacheTime: 0,
   });
 
-  //   const createTodoMutation = useMutation(
-  //     ({ todo }) => {
-  //       return axiosInstance({
-  //         url: "/todos",
-  //         method: "POST",
-  //         data: todo,
-  //       });
-  //     },
-  //     {
-  //       onSuccess: () => {
-  //         queryClient.resetQueries(["todo", "myTodo", "myTodos"]);
-  //       },
-  //     }
-  //   );
+  const editMeMutation = useMutation(({ userData }) => {
+    return axiosInstance({
+      url: `/users/me`,
+      method: "PATCH",
+      data: userData,
+    });
+  });
+
+  const changePasswordMutation = useMutation(({ data }) => {
+    return axiosInstance({
+      url: `/users/me/change-password`,
+      method: "PATCH",
+      data: data,
+    });
+  });
 
   const [user, setUser] = useState({
     firstName: null,
@@ -42,30 +41,104 @@ const Account = () => {
     email: null,
   });
 
+  const [changed, setChanged] = useState(false);
+  const [updated, setUpdated] = useState(false);
+
+  const [emailError, setEmailError] = useState(false);
+
   const [newPassword, setNewPassword] = useState(null);
   const [newPasswordError, setNewPasswordError] = useState(null);
 
-  const [oldPassword, setOldPassword] = useState(null);
-  const [oldPasswordError, setOldPasswordError] = useState(null);
+  const [oldPassword, setOldPassword] = useState("");
+  const [oldPasswordError, setOldPasswordError] = useState("");
+
+  const [customError, setCustomError] = useState("");
+  const [customPasswordError, setCustomPasswordError] = useState("");
 
   useEffect(() => {
-    // if (!statusesResponse.isLoading) {
-    //   setTodo({
-    //     ...todo,
-    //     status: statusesResponse.data.data[0]._id,
-    //   });
-    // }
+    if (!meResponse.isLoading) {
+      setUser({
+        firstName: meResponse.data.data.user.firstName,
+        lastName: meResponse.data.data.user.lastName,
+        email: meResponse.data.data.user.email,
+      });
+    }
   }, [meResponse.isLoading]);
 
   const handleCreate = (event) => {
     event.preventDefault();
 
-    // if (!todo.title) {
-    //   setTitleError(true);
-    // }
+    if (
+      user.email !== meResponse.data.data.user.email &&
+      !emailRegex.test(user.email)
+    ) {
+      setEmailError(true);
 
-    // createTodoMutation.mutate({ todo });
+      return;
+    }
+
+    editMeMutation.mutate({ userData: user });
   };
+
+  useEffect(() => {
+    if (editMeMutation.isSuccess) {
+      setUpdated(true);
+    }
+  }, [editMeMutation.isSuccess]);
+
+  const handleChangePassword = (event) => {
+    event.preventDefault();
+
+    if (!oldPassword || !newPassword) {
+      if (!oldPassword) {
+        setOldPasswordError(true);
+      }
+
+      if (!newPassword) {
+        setNewPasswordError(true);
+      }
+      return;
+    }
+
+    if (!newPassword) {
+      setNewPasswordError(true);
+
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      data: {
+        oldPassword,
+        newPassword,
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (
+      changePasswordMutation.isError &&
+      changePasswordMutation.error.response.data.code ===
+        "INVALID_OLD_PASSWORD" &&
+      changePasswordMutation.error.response.status === 403
+    ) {
+      setCustomPasswordError("Please enter correct old password!");
+    }
+
+    if (changePasswordMutation.isSuccess) {
+      setChanged(true);
+    }
+  }, [changePasswordMutation.isError, changePasswordMutation.isSuccess]);
+
+  useEffect(() => {
+    if (editMeMutation.isError) {
+      if (
+        editMeMutation.error.response.status === 403 &&
+        editMeMutation.error.response.data.code === "EMAIL_EXISTS"
+      ) {
+        setCustomError("Email exists!");
+      }
+    }
+  }, [editMeMutation.isError]);
 
   return (
     <AuthProvider>
@@ -75,7 +148,18 @@ const Account = () => {
             <div className="mb-5 flex gap-4 items-center justify-start">
               <h1 className="text-xl ">Account:</h1>
             </div>
-            <form className="flex flex-col max-w-full sm:max-w-[30%] gap-5">
+            {updated ? <p className="text-[#0216f5]">Updated!</p> : ""}
+            <form
+              onChange={() => {
+                setCustomError("");
+
+                if (editMeMutation.isSuccess || editMeMutation.isError) {
+                  editMeMutation.reset();
+                }
+                setUpdated(false);
+              }}
+              className="flex flex-col max-w-full sm:max-w-[30%] gap-5"
+            >
               <label className="flex flex-col">
                 <p>FirstName:</p>
                 <input
@@ -86,9 +170,9 @@ const Account = () => {
                       firstName: event.target.value,
                     });
                   }}
-                  value={user.firstName}
+                  value={user.firstName || ""}
                   type="text"
-                  name="title"
+                  name="firstName"
                 />
               </label>
               <label className="flex flex-col">
@@ -101,24 +185,28 @@ const Account = () => {
                       lastName: event.target.value,
                     });
                   }}
-                  value={user.lastName}
+                  value={user.lastName || ""}
                   type="text"
-                  name="title"
+                  name="lastName"
                 />
               </label>
               <label className="flex flex-col">
                 <p>Email:</p>
                 <input
-                  className={`rounded p-2 border `}
+                  className={`mb-5 rounded p-2 border ${
+                    emailError ? " border-2 border-red-600 outline-none" : ""
+                  }`}
                   onChange={(event) => {
+                    setEmailError(false);
+
                     setUser({
                       ...user,
                       email: event.target.value,
                     });
                   }}
-                  value={user.email}
-                  type="text"
-                  name="title"
+                  value={user.email || ""}
+                  type="email"
+                  name="email"
                 />
               </label>
               <button
@@ -129,51 +217,70 @@ const Account = () => {
                 Save
               </button>
             </form>
+            {customError && <p className="mt-2 text-red-600">{customError}</p>}
           </div>
 
           <div>
             <div className="mb-5 flex gap-4 items-center justify-start">
               <h1 className="text-xl ">Password:</h1>
             </div>
-            <form className="flex flex-col max-w-full sm:max-w-[30%] gap-5">
+            {changed ? <p className="text-[#0216f5]">Changed!</p> : ""}
+            <form
+              onChange={() => {
+                setCustomPasswordError("");
+                if (
+                  changePasswordMutation.isSuccess ||
+                  changePasswordMutation.isError
+                ) {
+                  changePasswordMutation.reset();
+                }
+                setChanged(false);
+              }}
+              className="flex flex-col max-w-full sm:max-w-[30%] gap-5"
+            >
               <label className="flex flex-col">
                 <p>Old Password:</p>
                 <input
-                  className={`rounded p-2 border`}
+                  className={`mb-5 rounded p-2 border ${
+                    oldPasswordError
+                      ? " border-2 border-red-600 outline-none"
+                      : ""
+                  }`}
                   onChange={(event) => {
-                    setUser({
-                      ...user,
-                      firstName: event.target.value,
-                    });
+                    setOldPasswordError(false);
+                    setOldPassword(event.target.value);
                   }}
-                  value={user.firstName}
-                  type="text"
-                  name="title"
+                  type="password"
+                  name="oldPassword"
                 />
               </label>
               <label className="flex flex-col">
                 <p>New Password:</p>
                 <input
-                  className={`rounded p-2 border `}
+                  className={`mb-5 rounded p-2 border ${
+                    newPasswordError
+                      ? " border-2 border-red-600 outline-none"
+                      : ""
+                  }`}
                   onChange={(event) => {
-                    setUser({
-                      ...user,
-                      lastName: event.target.value,
-                    });
+                    setNewPasswordError(false);
+                    setNewPassword(event.target.value);
                   }}
-                  value={user.lastName}
-                  type="text"
-                  name="title"
+                  type="password"
+                  name="newPassword"
                 />
               </label>
               <button
-                onClick={handleCreate}
+                onClick={handleChangePassword}
                 className="border p-2"
                 type="submit"
               >
                 Change Password
               </button>
             </form>
+            {customPasswordError && (
+              <p className="mt-2 text-red-600">{customPasswordError}</p>
+            )}
           </div>
         </div>
       ) : (
