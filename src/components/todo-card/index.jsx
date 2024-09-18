@@ -5,7 +5,7 @@ const TodoCard = ({ todo }) => {
   return (
     <div className="border-b py-4 px-2">
       <h2>{todo.title}</h2>
-      <span className="text-[#e80000]">Closed</span>
+      <span style={{ color: todo.status.color }}>{todo.status.title}</span>
       <p className="italic">{todo.description}</p>
 
       <p>
