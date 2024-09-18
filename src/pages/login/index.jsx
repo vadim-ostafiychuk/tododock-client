@@ -21,9 +21,9 @@ const Login = () => {
 
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState(false);
+  const [customError, setCustomError] = useState("");
   const [passwordError, setPasswordError] = useState(false);
   const [password, setPassword] = useState("");
-  const [customError, setCustomError] = useState("");
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -78,51 +78,53 @@ const Login = () => {
   }, [mutation]);
 
   return (
-    <div className="max-w-96 px-10 pt-10 pb-10 min-h-full mx-auto text-center border">
-      <h1 className="text-lg">Login</h1>
-      <form className="flex flex-col pt-5">
-        <input
-          type="email"
-          name="email"
-          value={email}
-          onChange={(event) => {
-            handleChangeInput();
-            setEmail(event.target.value);
-          }}
-          placeholder="Enter your email..."
-          className={`mb-5 rounded p-2 border ${
-            emailError ? " border-2 border-red-600 outline-none" : ""
-          }`}
-        />
-        <input
-          type="password"
-          name="password"
-          value={password}
-          onChange={(event) => {
-            handleChangeInput();
-            setPassword(event.target.value);
-          }}
-          placeholder="Enter your password..."
-          className={`mb-5 rounded p-2 border ${
-            passwordError ? " border-2 border-red-600 outline-none" : ""
-          }`}
-        />
-        <button
-          disabled={mutation.isLoading}
-          onClick={handleLogin}
-          className="border p-2"
-          type="submit"
-        >
-          Login
-        </button>
-      </form>
-      {customError && <p className="mt-2 text-red-600">{customError}</p>}
-      <p className="pt-5">
-        You dont have account?{" "}
-        <Link to="/register" className="text-blue-800 underline">
-          Register
-        </Link>
-      </p>
+    <div className="flex justify-center items-center min-h-screen">
+      <div className="w-[95%] sm:w-[70%] md:w-[50%] xl:w-[30%] max-w-xl px-10 pt-10 pb-10 min-h-full mx-auto text-center border">
+        <h1 className="text-lg">Login</h1>
+        <form className="flex flex-col pt-5">
+          <input
+            type="email"
+            name="email"
+            value={email}
+            onChange={(event) => {
+              handleChangeInput();
+              setEmail(event.target.value);
+            }}
+            placeholder="Enter your email..."
+            className={`mb-5 rounded p-2 border ${
+              emailError ? " border-2 border-red-600 outline-none" : ""
+            }`}
+          />
+          <input
+            type="password"
+            name="password"
+            value={password}
+            onChange={(event) => {
+              handleChangeInput();
+              setPassword(event.target.value);
+            }}
+            placeholder="Enter your password..."
+            className={`mb-5 rounded p-2 border ${
+              passwordError ? " border-2 border-red-600 outline-none" : ""
+            }`}
+          />
+          <button
+            disabled={mutation.isLoading}
+            onClick={handleLogin}
+            className="border p-2"
+            type="submit"
+          >
+            Login
+          </button>
+        </form>
+        {customError && <p className="mt-2 text-red-600">{customError}</p>}
+        <p className="pt-5">
+          You dont have account?{" "}
+          <Link to="/register" className="text-blue-800 underline">
+            Register
+          </Link>
+        </p>
+      </div>
     </div>
   );
 };
