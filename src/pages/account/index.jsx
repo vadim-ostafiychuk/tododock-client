@@ -11,6 +11,7 @@ const fetchMe = async () => {
 };
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/i;
 
 const Account = () => {
   const meResponse = useQuery("me", fetchMe, {
@@ -100,10 +101,8 @@ const Account = () => {
       return;
     }
 
-    if (!newPassword) {
+    if (!passwordRegex.test(newPassword)) {
       setNewPasswordError(true);
-
-      return;
     }
 
     changePasswordMutation.mutate({
