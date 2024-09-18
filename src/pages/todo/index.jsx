@@ -18,12 +18,6 @@ const Todo = () => {
     fetchMyTodo(id)
   );
 
-  useEffect(() => {
-    if (!isLoading) {
-      console.log(data);
-    }
-  }, [isLoading]);
-
   return (
     <AuthProvider>
       {!isLoading ? (
