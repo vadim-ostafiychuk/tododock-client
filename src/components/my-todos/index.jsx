@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import TodoCard from "../todo-card";
 import axiosInstance from "../../api/axios_instance";
 import { useQuery } from "react-query";
@@ -17,7 +17,7 @@ const fetchMyTodods = async (page) => {
 const MyTodos = () => {
   const myRef = useRef(null);
 
-  const executeScroll = () => myRef.current.scrollIntoView();
+  const executeScroll = () => myRef.current?.scrollIntoView?.();
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -30,14 +30,33 @@ const MyTodos = () => {
     }
   );
 
-  const handleOnPageClick = (event) => {
-    const page = event.selected + 1;
-
-    setSearchParams({ page: page });
-
-    setPage(page);
+  useEffect(() => {
+    if (page > 1) {
+      setSearchParams({ page: page });
+    } else {
+      searchParams.delete("page");
+      setSearchParams(searchParams);
+    }
 
     executeScroll();
+  }, [page]);
+
+  // const handleOnPageClick = (event) => {
+  //   console.log(page);
+  // };
+
+  const handleOnPageChange = (event) => {
+    // console.log(event);
+
+    const page = event.selected + 1;
+
+    // if (page === 1) {
+
+    // }
+
+    // setSearchParams({ page: page });
+
+    setPage(page);
   };
 
   return (
@@ -62,7 +81,8 @@ const MyTodos = () => {
             breakLabel="..."
             nextLabel=">"
             initialPage={page - 1}
-            onPageChange={handleOnPageClick}
+            onPageChange={handleOnPageChange}
+            // onClick={handleOnPageClick}
             pageRangeDisplayed={5}
             pageCount={data.meta.pageCount}
             previousLabel="<"
