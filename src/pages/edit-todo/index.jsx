@@ -107,7 +107,7 @@ const EditTodo = () => {
       {!isLoading ? (
         <div className="container mx-auto px-3 py-7">
           {updated ? <p className="text-[#0216f5]">Updated!</p> : ""}
-          <div className="mb-5 flex gap-4 items-center justify-start">
+          <div className="mb-5 flex flex-col sm:flex-row gap-4 items-center justify-start">
             <h1 className="text-xl ">
               Todo <b>{id}</b>
             </h1>
@@ -115,7 +115,7 @@ const EditTodo = () => {
               Delete Todo
             </button>
           </div>
-          <form className="flex flex-col max-w-[30%] gap-5">
+          <form className="flex flex-col max-w-full sm:max-w-[30%] gap-5">
             <label className="flex flex-col">
               <p>Title:</p>
               <input

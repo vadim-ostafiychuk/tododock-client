@@ -71,7 +71,7 @@ const CreateTodo = () => {
           <div className="mb-5 flex gap-4 items-center justify-start">
             <h1 className="text-xl ">Todo:</h1>
           </div>
-          <form className="flex flex-col max-w-[30%] gap-5">
+          <form className="flex flex-col max-w-full sm:max-w-[30%] gap-5">
             <label className="flex flex-col">
               <p>Title:</p>
               <input
