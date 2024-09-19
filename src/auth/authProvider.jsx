@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axiosInstance from "../api/axios_instance";
 import { useQuery } from "react-query";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +21,8 @@ const AuthProvider = ({ children }) => {
     cacheTime: 0,
   });
 
+  const [isAccess, setIsAccess] = useState(false);
+
   useEffect(() => {
     if (!query.isLoading) {
       if (query.isError) {
@@ -36,14 +38,12 @@ const AuthProvider = ({ children }) => {
           navigate("/login");
         }
       }
+
+      setIsAccess(true);
     }
   }, [query.isLoading]);
 
-  // if (query.isError && query.error.code === "ERR_NETWORK") {
-  //   return <ErrorPage />;
-  // }
-
-  return <>{query.isLoading ? <div>Loading</div> : <>{children}</>}</>;
+  return <>{!isAccess ? <div>Loading</div> : <>{children}</>}</>;
 };
 
 export default AuthProvider;
