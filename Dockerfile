@@ -2,11 +2,13 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
-ADD *.json .
+ADD package*.json .
 
 RUN npm ci
 
 ADD . .
+
+ENV VITE_API_BASE_URL="http://185.143.145.182:4000/api"
 
 RUN npm run build
 
