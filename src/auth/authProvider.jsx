@@ -23,15 +23,25 @@ const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (!query.isLoading) {
-      if (query.isError && query.error.response.status === 401) {
-        if (token) {
-          setToken(null);
+      if (query.isError) {
+        if (query.error.code === "ERR_NETWORK") {
+          navigate("/login");
         }
 
-        navigate("/login");
+        if (query.error.response?.status === 401) {
+          if (token) {
+            setToken(null);
+          }
+
+          navigate("/login");
+        }
       }
     }
-  }, [query]);
+  }, [query.isLoading]);
+
+  // if (query.isError && query.error.code === "ERR_NETWORK") {
+  //   return <ErrorPage />;
+  // }
 
   return <>{query.isLoading ? <div>Loading</div> : <>{children}</>}</>;
 };

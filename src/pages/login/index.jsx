@@ -60,6 +60,10 @@ const Login = () => {
 
   useEffect(() => {
     if (mutation.isError) {
+      if (mutation.error.code === "ERR_NETWORK") {
+        setCustomError("Something broke!");
+      }
+
       if (
         mutation.error.response?.status === 403 &&
         mutation.error.response?.data?.code === "USER_NOT_LOGINED"
